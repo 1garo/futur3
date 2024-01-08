@@ -16,7 +16,7 @@ type Yaml struct {
 }
 
 func main() {
-	yfile, err := os.ReadFile("params.yml")
+	yfile, err := os.ReadFile("example.yml")
 	if err != nil {
 		log.Fatal(err)
 	}

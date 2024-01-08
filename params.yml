@@ -1,4 +1,11 @@
+# How many years you plan to invest.
 years: 2
+
+# Initial value to be invested.
 initial_value: 30000
+
+# Investment tax in the whole year.
 tax_percentage: 14.57
+
+# Amount that you plan to invest monthly.
 monthly: 1000
