@@ -1,11 +1,16 @@
 # How many years you plan to invest.
-years: 2
+years: 1
 
 # Initial value to be invested.
-initial_value: 30000
+initial_investment: 10000
 
-# Investment tax in the whole year.
-tax_percentage: 14.57
+# Investment tax annually.
+tax_percentage: 12
 
 # Amount that you plan to invest monthly.
-monthly: 1000
+monthly: 0
+
+# The investment interest type:
+#   compound = true
+#   simple = false
+is_interest_compound: true

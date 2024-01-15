@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -8,11 +9,68 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var (
+	errCouldNotUnmarshal = errors.New("Could not unmarshal the content of the file.")
+)
+
 type Yaml struct {
 	Years        int `yaml:"years"`
-	Tax          float32 `yaml:"tax_percentage"`
-	InitialValue float32 `yaml:"initial_value"`
 	Monthly      float32 `yaml:"monthly"`
+
+	InitialInvestment float32 `yaml:"initial_investment"`
+
+	IsInterestCompound bool `yaml:"is_interest_compound"`
+	Tax          float32 `yaml:"tax_percentage"`
+}
+
+func compoundInterest(data *Yaml) string {
+	monthly := float32(data.Monthly)
+	total := data.InitialInvestment
+
+	taxPerMonth := (data.Tax / 12) / 100
+	months := data.Years * 12
+
+	for i := 1; i <= months; i++ {
+		received := total * taxPerMonth
+		total += received + monthly
+	}
+
+	// TODO: refactor this
+	return fmt.Sprintf("Initial investment: $%.2f\nTotal in %d years: $%.2f\nEarned $%.2f in %d years with this investment.",
+		data.InitialInvestment,
+		data.Years,
+		total,
+		total - data.InitialInvestment,
+		data.Years,
+	)
+}
+
+func simpleInterest(data *Yaml) string {
+	tax := data.Tax / 100
+	gains := data.InitialInvestment * tax
+	total := data.InitialInvestment + gains * float32(data.Years)
+
+	return fmt.Sprintf("Initial investment: $%.2f\nTotal in %d years: $%.2f\nEarned $%.2f in %d years with this investment.",
+		data.InitialInvestment,
+		data.Years,
+		total,
+		total - data.InitialInvestment,
+		data.Years,
+	)
+}
+
+func calculateInterest(content []byte) (string, error) {
+	var data Yaml
+
+	if err := yaml.Unmarshal(content, &data); err != nil {
+		return "", errCouldNotUnmarshal
+	}
+
+	if !data.IsInterestCompound {
+		return simpleInterest(&data), nil
+	}
+
+	return compoundInterest(&data), nil
 }
 
 func main() {
@@ -21,47 +79,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var data Yaml
-
-	err2 := yaml.Unmarshal(yfile, &data)
-
-	if err2 != nil {
-		log.Fatal(err2)
+	print, err := calculateInterest(yfile);
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	monthly := data.Monthly
-	total := data.InitialValue
-	taxPerMonth := (data.Tax / 12) / 100
-	months := data.Years * 12
-
-	for i := 0; i <= months; i++ {
-		receive := total * taxPerMonth
-		total += receive + float32(monthly)
-	}
-
-	fmt.Printf("Initial value: $%.2f\nTotal in %d years: $%.2f\nGained $%.2f in %d years with this investment.\n",
-		data.InitialValue,
-		data.Years,
-		total,
-		total - data.InitialValue,
-		data.Years,
-	)
-
-	// initial_value = 10_000
-	// total = initial_value
-	//
-	// years = 8
-	// months = years * 12
-	// monthly = 2000
-	//
-	// # investiment tax
-	// tax = 14.57
-	// tax_per_month = (tax / 12) / 100
-	//
-	// for i in range(1, months + 1):
-	//
-	//	gain = initial_value * tax_per_month
-	//	total += int(gain) + monthly
-	//
-	// print(f'total in {years} year: {int(total)} \nlucra {int(total) - initial_value} em {years} anos')
+	fmt.Println(print)
 }
