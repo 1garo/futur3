@@ -8,7 +8,6 @@ import (
 )
 
 
-
 var (
 	errCouldNotUnmarshal = errors.New("Could not unmarshal the content of the file.")
 )
@@ -49,15 +48,16 @@ func (y *Yaml) simpleInterest() {
 func CalculateInterest(content []byte) error {
 	var y Yaml
 
+	// TODO: This is not validating the content, for example, if I don't pass years, it don't error.
 	if err := yaml.Unmarshal(content, &y); err != nil {
-		return errCouldNotUnmarshal
+		return err
 	}
 
-	if !y.IsInterestCompound {
-		y.simpleInterest()
-	} else {
+	if y.IsInterestCompound {
 		y.compoundInterest()
+		return nil
 	}
 
+	y.simpleInterest()
 	return nil
 }
